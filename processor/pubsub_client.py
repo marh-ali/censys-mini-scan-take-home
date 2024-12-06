@@ -1,4 +1,7 @@
+"""Google Cloud Pub/Sub client implementation."""
+
 import logging
+
 from google.cloud import pubsub_v1
 
 

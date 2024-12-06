@@ -1,7 +1,26 @@
-# Enable all rules by default
-select = ["ALL"]
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "RUF", # ruff-specific rules
+    "D",   # pydocstyle
+]
 
-# Line length of 100 characters
-line-length = 100
+ignore = [
+    "D417",  # Missing argument descriptions in Docstring
+    "D401",  # First line should be imperative
+    "D407",  # Missing dashed underline after section
+    "D416",  # Section name should end with a colon
+    "D415",  # First line should end with a period
+    "D200",  # One-line docstring should fit on one line
+]
 
-target-version = "py312"
+[lint.pydocstyle]
+convention = "pep257"
+
+[lint.isort]
+force-single-line = true

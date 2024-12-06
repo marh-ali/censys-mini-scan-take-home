@@ -1,23 +1,22 @@
+"""Network scan result processor module."""
+
 import base64
+import ipaddress
 import json
 import logging
-import ipaddress
+
 from processor.db import Database
 
-# Configure logging format to include timestamp
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
 class MessageProcessor:
-    """
-    Processes and validates scan messages, storing results in a database.
-
-    Handles message parsing, data validation, and database operations for scan results.
-    """
+    """Process messages from Pub/Sub containing scan results."""
 
     def __init__(self):
+        """Initialize the message processor with database connection."""
         self.db = Database()
 
     def process_message(self, message) -> None:
@@ -81,8 +80,8 @@ class MessageProcessor:
             raise ValueError(f"Invalid timestamp: {timestamp}")
         try:
             ipaddress.ip_address(ip)
-        except ValueError:
-            raise ValueError(f"Invalid IP address: {ip}")
+        except ValueError as err:
+            raise ValueError(f"Invalid IP address: {ip}") from err
 
     def _extract_scan_data(self, data: dict) -> tuple[str, int, str, int]:
         """
@@ -102,14 +101,15 @@ class MessageProcessor:
 
             self._validate_scan_data(ip, port, timestamp)
             return (ip, port, service, timestamp)
-        except (ValueError, KeyError) as e:
-            raise ValueError(f"Data validation failed: {e}")
+        except (ValueError, KeyError) as err:
+            raise ValueError(f"Data validation failed: {err}") from err
 
     def _parse_response(self, data: dict) -> str:
         """
         Parse service response based on data version format.
 
-        :param data: Dictionary containing scan response data. Required keys: 'data_version', 'data'.
+        :param data: Dictionary containing scan response data. Required keys:
+                    'data_version', 'data'.
                     For version 1: data.response_bytes_utf8 (base64 encoded)
                     For version 2: data.response_str (plain text)
         :type data: dict
@@ -128,5 +128,5 @@ class MessageProcessor:
                 return data["data"]["response_str"]
             else:
                 raise ValueError(f"Unknown data version: {version}")
-        except KeyError as e:
-            raise ValueError(f"Missing required field: {e}")
+        except KeyError as err:
+            raise ValueError(f"Missing required field: {err}") from err
