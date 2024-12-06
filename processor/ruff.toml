@@ -1,0 +1,7 @@
+# Enable all rules by default
+select = ["ALL"]
+
+# Line length of 100 characters
+line-length = 100
+
+target-version = "py312"
