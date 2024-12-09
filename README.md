@@ -15,13 +15,16 @@ The `docker-compose.yml` file sets up a toy example of a scanner. It spins up:
 - A scanner service that publishes mock scan results
 - One or more processor instances
 
-Run with:
+### Steps
+1. Clone this repo
+2. Run with:
 
 ```bash
 docker compose up
 ```
-
-The results are stored in real-time in SQLite at `data/scan_results.db`.
+Logging is enabled by default. After running the above command, you can view the stream in real-time:
+![logging_screenshot.png](logging_screenshot.png)
+The results are persisted in `data/scan_results.db`, which is created after the first run.
 
 ## Architecture
 
@@ -70,7 +73,7 @@ The processor ensures reliable message processing:
 
 ## Development
 
-Run tests:
+Run unit tests:
 
 ```bash
 pytest processor/tests/
