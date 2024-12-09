@@ -1,4 +1,3 @@
-version: '3'
 services:
 
   # Starts the P/S emulator
@@ -40,3 +39,22 @@ services:
     build:
       context: .
       dockerfile: ./cmd/scanner/Dockerfile
+
+  # Add the processor service
+  processor:
+    build:
+      context: .
+      dockerfile: processor/Dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    depends_on:
+      mk-subscription:
+        condition: service_completed_successfully
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:8085
+      PUBSUB_PROJECT_ID: test-project
+      PUBSUB_SUBSCRIPTION_ID: scan-sub
+      LOG_LEVEL: "INFO"
+    volumes:
+      - ./data:/app/data
