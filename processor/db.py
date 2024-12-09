@@ -1,5 +1,7 @@
 """Database operations for scan results."""
 
+import os
+
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, text
@@ -11,15 +13,15 @@ from processor.models import Base, ServiceScan
 class Database:
     """
     Thread-safe database manager for network scan results.
-
-    Uses SQLite with DELETE journaling mode and exclusive connections
-    for containerized deployment.
     """
 
     def __init__(self):
         """Initialize database connection."""
+
+        db_path = os.path.join("/app/data", "scan_results.db")
+
         self.engine = create_engine(
-            "sqlite:///scan_results.db",
+            f"sqlite:///{db_path}",
             connect_args={
                 "timeout": 30,
                 "check_same_thread": False,
