@@ -1,23 +1,22 @@
 """Database operations for scan results."""
 
 import os
-
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
-from processor.models import Base, ServiceScan
+from processor.models import Base
+from processor.models import ServiceScan
 
 
 class Database:
-    """
-    Thread-safe database manager for network scan results.
-    """
+    """Thread-safe database manager for network scan results."""
 
     def __init__(self):
         """Initialize database connection."""
-
         db_path = os.path.join("/app/data", "scan_results.db")
 
         self.engine = create_engine(

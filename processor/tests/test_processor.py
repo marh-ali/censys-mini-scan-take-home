@@ -2,7 +2,8 @@
 
 import base64
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import pytest
 
@@ -28,7 +29,7 @@ def valid_scan_data_v1():
         "timestamp": 1234567890,
         "data_version": 1,
         "data": {
-            "response_bytes_utf8": base64.b64encode("Hello World".encode()).decode()
+            "response_bytes_utf8": base64.b64encode(b"Hello World").decode()
         },
     }
 

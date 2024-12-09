@@ -1,10 +1,11 @@
 """Main entry point for the processor package."""
 
-import os
 import logging
+import os
 
 from processor.processor import MessageProcessor
 from processor.pubsub_client import PubSubClient
+
 
 def main():
     """Initialize and run the processor service."""
@@ -16,7 +17,7 @@ def main():
     # Configure logging
     logging.basicConfig(
         level=getattr(logging, log_level),
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
     if not project_id or not subscription_id:
@@ -25,8 +26,10 @@ def main():
             "PUBSUB_PROJECT_ID, PUBSUB_SUBSCRIPTION_ID"
         )
 
-    logging.info(f"Starting processor with project_id={project_id}, "
-                f"subscription_id={subscription_id}")
+    logging.info(
+        f"Starting processor with project_id={project_id}, "
+        f"subscription_id={subscription_id}"
+    )
 
     # Initialize processor and client
     processor = MessageProcessor()
@@ -34,6 +37,7 @@ def main():
 
     logging.info("Starting message processing service...")
     client.start_listening(processor.process_message)
+
 
 if __name__ == "__main__":
     main()
