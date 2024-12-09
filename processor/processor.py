@@ -4,6 +4,7 @@ import base64
 import ipaddress
 import json
 import logging
+import time
 
 from processor.db import Database
 
@@ -15,18 +16,23 @@ logging.basicConfig(
 class MessageProcessor:
     """Process messages from Pub/Sub containing scan results."""
 
+    MAX_RETRIES = 3  # Can be made configurable via env var
+    BASE_DELAY = 1  # Base delay in seconds
+
     def __init__(self):
         """Initialize the message processor with database connection."""
         self.db = Database()
 
-    def process_message(self, message) -> None:
+    def process_message(self, message, retry_count: int = 0) -> None:
         """
-        Process a scan result message from Pub/Sub and store it in the database.
+        Process a scan result message from Pub/Sub with retries.
 
-        :param message: A Pub/Sub message object containing scan result data.
+        :param message: A Pub/Sub message object containing scan result data
+        :param retry_count: Current retry attempt number, defaults to 0
         :type message: google.cloud.pubsub_v1.subscriber.message.Message
-        :raises json.JSONDecodeError: If message contains invalid JSON
-        :raises ValueError: If message data fails validation
+        :type retry_count: int
+        :raises json.JSONDecodeError: If message contains invalid JSON - no retry
+        :raises ValueError: If message data fails validation and attempts a retry
         :raises Exception: For other processing errors
         :return: None
         """
@@ -37,12 +43,6 @@ class MessageProcessor:
             ip, port, service, timestamp = self._extract_scan_data(data)
             response = self._parse_response(data)
 
-            logging.info(
-                f"Scan Record - IP: {ip}, Port: {port}, "
-                f"Service: {service}, Timestamp: {timestamp}"
-            )
-            logging.debug(f"Response: {response[:100]}...")
-
             self.db.upsert_scan(
                 ip=ip,
                 port=port,
@@ -51,15 +51,28 @@ class MessageProcessor:
                 response=response,
             )
             logging.info(f"Successfully stored scan for {ip}:{port} ({service})")
-
             message.ack()
 
         except json.JSONDecodeError as e:
+            # Don't retry for malformed data
             logging.error(f"Invalid JSON in message: {e}")
             message.nack()
+
         except Exception as e:
-            logging.error(f"Error processing message: {e}", exc_info=True)
-            message.nack()
+            if retry_count < self.MAX_RETRIES:
+                # Calculate exponential backoff delay
+                delay = (2 ** retry_count) * self.BASE_DELAY
+                logging.warning(
+                    f"Attempt {retry_count + 1}/{self.MAX_RETRIES} failed: {e}. "
+                    f"Retrying in {delay} seconds..."
+                )
+                time.sleep(delay)
+                self.process_message(message, retry_count + 1)
+            else:
+                logging.error(
+                    f"Failed after {self.MAX_RETRIES} attempts: {e}", exc_info=True
+                )
+                message.nack()
 
     def _validate_scan_data(self, ip: str, port: int, timestamp: int) -> None:
         """
