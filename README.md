@@ -89,7 +89,7 @@ ruff check .
 
 For a production environment, consider:
 
-- Replace SQLite with a distributed database (e.g., PostgreSQL)
+- Replace SQLite with a distributed database
 - Add metrics for message processing and latency tracking
 - Implement dead-letter queue for failed messages
 - Add monitoring and alerting
