@@ -27,7 +27,7 @@ Logging is enabled by default. After running the above command, you can view the
 The results are persisted in `data/scan_results.db`, which is created after the first run.
 
 ## Architecture
-
+![architecture_diagram](architecture_diagram.png)
 ### Message Flow
 
 1. Scanner publishes scan results to Pub/Sub topic 'scan-topic'
@@ -35,6 +35,21 @@ The results are persisted in `data/scan_results.db`, which is created after the 
 3. Each message is validated and normalized
 4. Results are stored in SQLite with composite key (ip, port, service)
 
+
+### Message Processing Workflow
+The processor implements a pipeline architecture where each stage handles a specific aspect of message processing, from validation to database operations. The workflow is designed with modularity in mind, allowing for potential future optimization.
+
+Key components in the pipeline:
+1. Message decoding and initial validation
+2. Data extraction and normalization 
+3. Version-specific response parsing
+4. Database operations with atomic updates
+
+The circular nodes in the workflow diagram represent processes that could be independently scaled if computationally intensive. For example, data validation or response parsing could be separated into their own services if they become bottlenecks. Similarly, the functions shown in blue (like `_validate_scan_data`, `_extract_scan_data`, `_parse_response`) are designed with clear boundaries that would allow them to be extracted into separate microservices or serverless functions if needed.
+
+This modular design provides flexibility to optimize resource allocation based on workload characteristics while maintaining the simplicity of a single processor deployment for typical use cases.
+
+![message_processing_workflow](message_processing_workflow.png)
 ### Horizontal Scaling
 
 The processor achieves horizontal scaling through:
